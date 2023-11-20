@@ -7,35 +7,32 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 use App\Models\Usuario;
+use App\Http\Controllers\Controlador_Usuario;
 
 
 class AuthController extends Controller
 {
     public function login(Request $request)
-    {
-        $body = $request->all();
-        
-        $nombre_usuario = $body['nombre_usuario'];
-        $contrasena = $body['contrasena'];
-        $usuario = Usuario::where('nombre_usuario', $nombre_usuario);
+{
+    $body = $request->all();
+    
+    $nombre_usuario = $body['nombre_usuario'];
+    $contrasena = $body['contrasena'];
 
-        if(!$usuario->exists()){
-            return response()->json(['msg'=>'usuario inexistente'], 400);
-        }
-
-        $usuario = $usuario->first();
-
-        if(!Hash::check($contrasena, $usuario->contrasena)){
-            return response()->json(['msg'=>'la contrasena no coincide'], 400);
-        }
-
-        Auth::attempt([
-            'nombre_usuario' => $nombre_usuario,
-            'password' => $usuario->contrasena,
-        ]);
-
-        return response()->json(['msg'=>'je'], 200);
+    // Buscar un usuario en la base de datos por nombre de usuario
+    $usuario = Usuario::where('nombre_usuario', $nombre_usuario)->first();
+    
+    if (!$usuario) {
+        return response()->json(['msg' => 'Usuario inexistente'], 400);
     }
+
+    // Verificar si la contraseña proporcionada coincide con la almacenada en la base de datos
+    if (Hash::check($contrasena, $usuario->contrasena)) {
+        return response()->json(['msg' => 'Inicio de sesión exitoso'], 200);
+    } else {
+        return response()->json(['msg' => 'La contraseña no coincide'], 400);
+    }
+}
 
     public function register(Request $request)
     {
